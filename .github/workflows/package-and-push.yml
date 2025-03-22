@@ -1,0 +1,42 @@
+name: package-and-push
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build_and_upload:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: windows-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x64
+      - run: ./gradlew.bat installDist
+      - run: |
+          jpackage --name "Konaste API" --vendor "dev.bauxe" --type exe --input build/install/konaste-api/lib --main-jar konaste-api-0.1.1a.jar --main-class dev.bauxe.konaste.MainKt --type app-image --win-console
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.ROLE_ARN }}
+          role-session-name: konaste-session
+          aws-region: ${{ vars.AWS_REGION }}
+      - run: |
+          $shaShort = $env:GITHUB_SHA.substring(0, 8)
+          $expiresAt = Get-Date (Get-Date).AddMonths(1).ToUniversalTime() -UFormat '+%Y-%m-%dT%H:%M:%SZ'
+          echo $shaShort
+          Compress-Archive -Path "Konaste API" -CompressionLevel Optimal -DestinationPath "konaste-api-${shaShort}.zip"
+          aws s3 cp "./konaste-api-${shaShort}.zip" "s3://${{ vars.BUCKET_NAME }}/konaste-api-${shaShort}.zip" --cache-control max-age=86400 --expires $expiresAt
+          aws s3 cp "./konaste-api-${shaShort}.zip" "s3://${{ vars.BUCKET_NAME }}/konaste-api-latest.zip" --cache-control max-age=60
