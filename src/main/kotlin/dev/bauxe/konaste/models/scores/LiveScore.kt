@@ -13,6 +13,7 @@ data class NowPlayingPointInTime(
     val currentNoteCount: Long,
     val maxCombo: Int,
     val score: Int,
+    val maxPossibleScore: Int,
     val ex: Int,
     val missedEx: Int,
     val combo: Int,

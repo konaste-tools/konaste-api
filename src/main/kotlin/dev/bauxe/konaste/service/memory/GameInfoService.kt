@@ -91,6 +91,7 @@ class GameInfoService(
             1,
         liveScoreData.maxCombo,
         liveScoreData.score,
+        liveScoreData.maxPossibleScore,
         liveScoreData.exScore,
         liveScoreData.missedExScore,
         liveScoreData.combo,
