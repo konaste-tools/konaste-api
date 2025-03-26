@@ -2,7 +2,7 @@ package dev.bauxe.konaste.utils
 
 class ClearMarkConverter {
   companion object {
-    val CLEAR_MARKS = listOf("no", "played", "comp", "ex", "uc", "puc")
+    val CLEAR_MARKS = listOf("no", "played", "comp", "ex", "uc", "puc", "spuc")
 
     fun convertClearMark(clearMark: Int): String {
       return when (clearMark) {
@@ -12,6 +12,7 @@ class ClearMarkConverter {
         3 -> "ex"
         4 -> "uc"
         5 -> "puc"
+        6 -> "spuc"
         else -> "no"
       }
     }

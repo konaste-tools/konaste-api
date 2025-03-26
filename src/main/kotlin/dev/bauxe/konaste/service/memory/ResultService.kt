@@ -56,6 +56,16 @@ class ResultService(
   private suspend fun buildResult(screen: ResultScreenData): ResultScreen? {
     resultHistoryData.addFirst(screen)
     val song = songService.getSong(screen.songId) ?: return null
+    val clearMark =
+        when (song.difficulties[screen.difficulty].maxExScore - screen.ex) {
+          0 -> 6
+          else -> screen.clearMark
+        }
+    val bestClearMark =
+        when (song.difficulties[screen.difficulty].maxExScore - screen.bestEx) {
+          0 -> 6
+          else -> screen.clearMark
+        }
     return ResultScreen(
         song.titleName,
         song.artistName,
@@ -67,8 +77,8 @@ class ResultService(
         screen.bestScore,
         screen.bestEx,
         song.difficulties[screen.difficulty].maxExScore,
-        ClearMarkConverter.Companion.convertClearMark(screen.clearMark),
-        ClearMarkConverter.Companion.convertClearMark(screen.bestClearMark),
+        ClearMarkConverter.Companion.convertClearMark(clearMark),
+        ClearMarkConverter.Companion.convertClearMark(bestClearMark),
         GradeConverter.Companion.convertGrade(screen.grade),
         GradeConverter.Companion.convertGrade(screen.bestGrade),
         songService.getSongImagePath(screen.songId, song.ascii, screen.difficulty, ImageSize.S))
