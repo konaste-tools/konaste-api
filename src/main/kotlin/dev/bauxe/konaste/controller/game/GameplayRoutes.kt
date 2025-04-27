@@ -63,11 +63,15 @@ fun Route.gameNowPlayingSong(gameInfoService: GameInfoService, songService: Song
     val raw = call.request.queryParameters["raw"].toBoolean()
     val nowPlaying = gameInfoService.getNowPlaying()
     if (nowPlaying.songId == -1) {
+      logger.debug { "Failed to get now playing song because now playing was not found" }
       call.respond(HttpStatusCode.NotFound)
       return@get
     }
     val songInfo = songService.getSong(nowPlaying.songId)
     if (songInfo == null) {
+      logger.debug {
+        "Failed to get now playing song ${nowPlaying.songId} because song was not found"
+      }
       call.respond(HttpStatusCode.NotFound)
       return@get
     }

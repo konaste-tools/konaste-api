@@ -13,7 +13,8 @@
         </encoder>
     </appender>
 
-    <root level="${env.LOG_LEVEL:INFO}">
+    <variable name="ROOT_LOG_LEVEL" value="${ROOT_LOG_LEVEL:-INFO}" />
+    <root level="${ROOT_LOG_LEVEL}">
         <appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </root>

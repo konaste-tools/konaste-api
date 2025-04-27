@@ -83,7 +83,7 @@ class WindowsMemoryClient(
               logger.warn {
                 "Failed to resolve path, failed at step $index of ${path.pointers.size} (${step.offset})"
               }
-              logger.debug {
+              logger.trace {
                 "Kernel error was ${kernel32Wrapper.getLastError()}. pointer was ${pointerPosition.share(step.offset)}. data code was ${data.code}"
               }
               return PointerResult.NotFound

@@ -73,7 +73,7 @@ class GameWindowPoller(
           onStart[nextWindow]?.forEach { it.invoke() }
           onEnd[lastWindow]?.forEach { it.invoke() }
           onChange.forEach {
-            logger.debug { "Sending for ${it.hashCode()}" }
+            logger.trace { "Sending for ${it.hashCode()}" }
             it.invoke(nextWindow)
           }
         }

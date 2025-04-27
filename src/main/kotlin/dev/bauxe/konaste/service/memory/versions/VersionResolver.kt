@@ -274,7 +274,7 @@ open class VersionResolver(
   ): Boolean {
     return (data.decodeToString() == versionName).also { result ->
       if (!result) {
-        logger.debug { "Tried to match $versionName but got ${data.decodeToString()} instead" }
+        logger.trace { "Tried to match $versionName but got ${data.decodeToString()} instead" }
       }
     }
   }
