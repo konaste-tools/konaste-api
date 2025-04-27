@@ -11,6 +11,7 @@ import dev.bauxe.konaste.models.scores.NowPlayingMemoryData
 import dev.bauxe.konaste.models.scores.NowPlayingPointInTime
 import dev.bauxe.konaste.repository.nowplaying.NowPlayingRepository
 import dev.bauxe.konaste.service.memory.versions.DataReadResult
+import dev.bauxe.konaste.service.memory.versions.PointerReadResult
 import dev.bauxe.konaste.service.memory.versions.VersionResolver
 import dev.bauxe.konaste.service.polling.GameWindowPoller
 import dev.bauxe.konaste.utils.ByteArrayReader
@@ -24,9 +25,13 @@ class GameInfoService(
 ) {
   private val logger = KotlinLogging.logger {}
   private var gameWindow: GameWindow = GameWindow.UI_UNKNOWN
+  private var lastPointer: PointerReadResult? = null
 
   init {
-    gameWindowPoller.addOnChange { gameWindow = it }
+    gameWindowPoller.addOnChange {
+      gameWindow = it
+      lastPointer = null
+    }
   }
 
   fun getGameWindow(): GameWindow {
@@ -101,15 +106,17 @@ class GameInfoService(
   private suspend fun getNowPlayingMemoryData(): NowPlayingMemoryData? {
     if (getGameWindow() != GameWindow.UI_SONG_PLAY) return null
 
-    return when (val result =
-        versionResolver
-            .accept { it.getCurrentPlayDataPath() }
-            .readMemory(memoryClient, NowPlayingMemoryData.Companion)) {
+    val pointer = lastPointer ?: versionResolver.accept { it.getCurrentPlayDataPath() }
+    return when (val result = pointer.readMemory(memoryClient, NowPlayingMemoryData.Companion)) {
       is DataReadResult.Error -> {
         logger.error { "Failed to read play data: ${result.reason}" }
+        lastPointer = null
         return null
       }
-      is DataReadResult.Ok -> result.data
+      is DataReadResult.Ok -> {
+        lastPointer = pointer
+        result.data
+      }
     }
   }
 }
