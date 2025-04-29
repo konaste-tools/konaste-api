@@ -4,6 +4,7 @@ import dev.bauxe.konaste.models.info.GameWindow.entries
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 enum class GameWindow(val id: Int) {
+  UI_INIT(-2),
   UI_UNKNOWN(-1), //
   UI_BOOT(0), //
   UI_LOAD_START(2), //

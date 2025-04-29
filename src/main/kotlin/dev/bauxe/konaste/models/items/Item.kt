@@ -26,6 +26,6 @@ data class Item(val id: String, val type: String, val flags: Int) {
     override fun size(): Int = 88
 
     override fun fromByteReader(data: ByteArrayReader): Item =
-        Item(data.nextString(17, "SHIFT-JIS"), data.nextString(77, "SHIFT-JIS"), data.nextInt())
+        Item(data.nextString(17, "SHIFT-JIS"), data.nextString(67, "SHIFT-JIS"), data.nextInt())
   }
 }

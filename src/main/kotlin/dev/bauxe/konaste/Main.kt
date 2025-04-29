@@ -33,6 +33,8 @@ import dev.bauxe.konaste.repository.version.VersionRepository
 import dev.bauxe.konaste.repository.version.models.VersionConfiguration
 import dev.bauxe.konaste.service.ScoreService
 import dev.bauxe.konaste.service.SongService
+import dev.bauxe.konaste.service.composition.EventListener
+import dev.bauxe.konaste.service.composition.EventManager
 import dev.bauxe.konaste.service.memory.DecryptionService
 import dev.bauxe.konaste.service.memory.GameInfoService
 import dev.bauxe.konaste.service.memory.ResultService
@@ -53,9 +55,6 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import java.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.Clock
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -68,6 +67,9 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
+import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 fun main(args: Array<String>) {
   EngineMain.main(
@@ -164,7 +166,7 @@ fun koinModules(environment: ApplicationEnvironment, config: Config) = module {
   singleOf(::ObjectReader)
   single {
     ResultService(Dispatchers.Default, get(), get(), get(), get(), enableDumping, get())
-  } bind ResultService::class
+  } bind ResultService::class bind EventListener::class
 
   val osName = System.getProperty("os.name").lowercase()
   when {
@@ -206,12 +208,17 @@ fun koinModules(environment: ApplicationEnvironment, config: Config) = module {
         get(),
         false,
         environment.config.propertyOrNull("konaste.version")?.getString())
-  }
-  single { GameWindowPoller(Dispatchers.Default, 50.milliseconds, get()) }
+  } bind VersionResolver::class bind EventListener::class
+  single { GameWindowPoller(Dispatchers.Default, 50.milliseconds, get()) } bind
+      GameWindowPoller::class bind
+      EventListener::class
   single { FileSourceMusicRepository(get()) } bind MusicRepository::class
   single { MemoryBackedNowPlayingRepository(get(), get()) } bind NowPlayingRepository::class
-  single { MemoryBackedNowPlayingRepository(get(), get()) } bind NowPlayingRepository::class
   single { MemoryBackedGameStateRepository(get(), get()) } bind GameStateRepository::class
-  single { MemoryBackedScoreRepository(get(), get()) } bind MemoryBackedScoreRepository::class
+  single { MemoryBackedScoreRepository(get(), get()) } bind
+      MemoryBackedScoreRepository::class bind
+      EventListener::class
   single { MemoryBackedItemRepository(get(), get(), get()) } bind ItemRepository::class
+
+  single { EventManager(getAll(EventListener::class)) } bind EventManager::class
 }

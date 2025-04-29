@@ -11,8 +11,15 @@ import dev.bauxe.konaste.models.ConvertableFromByteReader
 import dev.bauxe.konaste.models.ReducedGameVersion
 import dev.bauxe.konaste.models.memory.LookupPath
 import dev.bauxe.konaste.repository.version.VersionRepository
+import dev.bauxe.konaste.service.composition.EventListener
 import dev.bauxe.konaste.utils.ByteArrayReader
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
@@ -22,15 +29,18 @@ open class VersionResolver(
     private val versionRepository: VersionRepository,
     private val offline: Boolean = false,
     private val forceVersion: String?,
-) {
+) : EventListener() {
   companion object {
     private val offlineVersion = Ver2025031400()
   }
+
+  val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
   private var versionAddress: Pointer? = null
   private var version: Version? = null
 
   private var lastUpdatedAt: Instant
+  private var ready = false
 
   init {
     this.lastUpdatedAt = Instant.fromEpochMilliseconds(0)
@@ -46,6 +56,7 @@ open class VersionResolver(
   }
 
   suspend fun getActiveVersion(): VersionResult {
+    if (!ready) return VersionResult.NotFound
     if (forceVersion != null) {
       logger.info { "Forcing version to $forceVersion" }
       if (offline) {
@@ -277,6 +288,20 @@ open class VersionResolver(
         logger.trace { "Tried to match $versionName but got ${data.decodeToString()} instead" }
       }
     }
+  }
+
+  override fun onGameBoot() {
+    scope.launch {
+      delay(30.seconds)
+      ready = true
+    }
+  }
+
+  override fun onGameClose() {
+    ready = false
+    versionAddress = null
+    version = null
+    lastUpdatedAt = clock.now()
   }
 }
 

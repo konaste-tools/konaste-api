@@ -15,9 +15,9 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlin.time.Duration.Companion.seconds
 
 class VersionResolverTest :
     FunSpec({
@@ -33,8 +33,9 @@ class VersionResolverTest :
         every { memoryClient.lastUpdatedAt() } returns Instant.DISTANT_FUTURE
         coEvery { versionRepository.getSupportedKonasteVersions("0.1.1a") } returns emptyList()
 
-        val versionResolver =
-            VersionResolver(memoryClient, clock, versionRepository, false, null)
+        val versionResolver = VersionResolver(memoryClient, clock, versionRepository, false, null)
+        versionResolver.onGameBoot()
+
         val result = versionResolver.getActiveVersion()
 
         result shouldBe VersionResult.NotFound
@@ -57,8 +58,8 @@ class VersionResolverTest :
         coEvery { versionRepository.getKonasteVersionDefintion(eq("KFC:TEST:1")) } returns
             resolvedVersion
 
-        val versionResolver =
-            VersionResolver(memoryClient, clock, versionRepository, false, null)
+        val versionResolver = VersionResolver(memoryClient, clock, versionRepository, false, null)
+        versionResolver.onGameBoot()
         val result = versionResolver.getActiveVersion()
 
         result.shouldBeInstanceOf<VersionResult.Ok>().version.getVersion().shouldBe("KFC:TEST:1")
@@ -68,8 +69,8 @@ class VersionResolverTest :
         every { memoryClient.lastUpdatedAt() } returns
             Instant.fromEpochMilliseconds(0).minus(1.seconds)
 
-        val versionResolver =
-            VersionResolver(memoryClient, clock, versionRepository, false, null)
+        val versionResolver = VersionResolver(memoryClient, clock, versionRepository, false, null)
+        versionResolver.onGameBoot()
         val result = versionResolver.getActiveVersion()
 
         result.shouldBeInstanceOf<VersionResult.NotFound>()
@@ -98,8 +99,8 @@ class VersionResolverTest :
             resolvedVersion andThenThrows
             RuntimeException()
 
-        val versionResolver =
-            VersionResolver(memoryClient, clock, versionRepository, false, null)
+        val versionResolver = VersionResolver(memoryClient, clock, versionRepository, false, null)
+        versionResolver.onGameBoot()
         val initialResult = versionResolver.getActiveVersion()
         val nextResult = versionResolver.getActiveVersion()
 

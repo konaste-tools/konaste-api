@@ -33,7 +33,7 @@ fun Route.ui(gameInfoService: GameInfoService) {
 fun Route.websocketUi(gameWindowPoller: GameWindowPoller) {
   webSocket {
     GameWindow.Companion.logger.debug { "Opened connection to /ws/ui" }
-    val sendData: suspend (GameWindow) -> Unit = { window ->
+    val sendData: suspend (GameWindow, GameWindow) -> Unit = { _, window ->
       this@webSocket.send(
           Frame.Text(
               window.name,

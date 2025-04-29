@@ -8,6 +8,7 @@ import dev.bauxe.konaste.models.scores.ResultScreenData
 import dev.bauxe.konaste.repository.persistence.history.ScoreHistoryRepository
 import dev.bauxe.konaste.service.ImageSize
 import dev.bauxe.konaste.service.SongService
+import dev.bauxe.konaste.service.composition.EventListener
 import dev.bauxe.konaste.service.memory.versions.PointerReadResult
 import dev.bauxe.konaste.service.memory.versions.VersionResolver
 import dev.bauxe.konaste.service.polling.GameWindowPoller
@@ -33,7 +34,7 @@ class ResultService(
     private val songService: SongService,
     private val enableDumping: Boolean,
     private val scoreHistoryRepository: ScoreHistoryRepository
-) {
+) : EventListener() {
   private val logger = KotlinLogging.logger {}
   private val resultHistory: MutableList<ResultScreen> = ArrayDeque()
   private val resultHistoryData: MutableList<ResultScreenData> = ArrayDeque()
@@ -107,6 +108,11 @@ class ResultService(
       scoreHistoryRepository.addRecord(resultScreenData, memoryResult.data)
       this@ResultService.buildResult(resultScreenData)?.let { resultHistory.addFirst(it) }
     }
+  }
+
+  override fun onLogin() {
+    resultHistory.clear()
+    loadDb()
   }
 
   fun loadDb() {

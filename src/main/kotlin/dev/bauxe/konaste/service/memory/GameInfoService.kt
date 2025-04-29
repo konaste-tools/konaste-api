@@ -28,8 +28,8 @@ class GameInfoService(
   private var lastPointer: PointerReadResult? = null
 
   init {
-    gameWindowPoller.addOnChange {
-      gameWindow = it
+    gameWindowPoller.addOnChange { _, window ->
+      gameWindow = window
       lastPointer = null
     }
   }
