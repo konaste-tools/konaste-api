@@ -2,6 +2,7 @@ package dev.bauxe.konaste.service.memory.polling
 
 import dev.bauxe.konaste.models.info.GameWindow
 import dev.bauxe.konaste.repository.state.GameStateRepository
+import dev.bauxe.konaste.service.composition.EventManager
 import dev.bauxe.konaste.service.polling.GameWindowPoller
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.clearMocks
@@ -17,6 +18,7 @@ class GameWindowPollerTest :
     FunSpec({
       coroutineTestScope = true
       val gameStateRepository = mockk<GameStateRepository>()
+      val eventManager = mockk<EventManager>()
 
       beforeAny { clearMocks(gameStateRepository) }
 
@@ -128,8 +130,8 @@ class GameWindowPollerTest :
             GameWindowPoller(
                 StandardTestDispatcher(scheduler), 100.milliseconds, gameStateRepository)
 
-        val mockFn = mockk<suspend (GameWindow) -> Unit>()
-        coEvery { mockFn.invoke(any()) } returns Unit
+        val mockFn = mockk<suspend (GameWindow, GameWindow) -> Unit>()
+        coEvery { mockFn.invoke(any(), any()) } returns Unit
         gameWindowPoller.addOnChange(mockFn)
 
         coEvery { gameStateRepository.getCurrentUi() } returnsMany
@@ -143,9 +145,9 @@ class GameWindowPollerTest :
         gameWindowPoller.cancel()
 
         coVerifyOrder {
-          mockFn.invoke(GameWindow.UI_BOOT)
-          mockFn.invoke(GameWindow.UI_START_CREDIT)
-          mockFn.invoke(GameWindow.UI_UNKNOWN)
+          mockFn.invoke(GameWindow.UI_UNKNOWN, GameWindow.UI_BOOT)
+          mockFn.invoke(GameWindow.UI_BOOT, GameWindow.UI_START_CREDIT)
+          mockFn.invoke(GameWindow.UI_START_CREDIT, GameWindow.UI_UNKNOWN)
         }
         coVerify(exactly = 5) { gameStateRepository.getCurrentUi() }
       }

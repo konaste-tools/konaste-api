@@ -6,11 +6,11 @@ import dev.bauxe.konaste.client.MemoryResult
 import dev.bauxe.konaste.models.info.GameWindow
 import dev.bauxe.konaste.models.items.Item
 import dev.bauxe.konaste.models.items.ItemsArea
+import dev.bauxe.konaste.service.composition.EventListener
 import dev.bauxe.konaste.service.memory.versions.DataReadResult
 import dev.bauxe.konaste.service.memory.versions.VersionResolver
 import dev.bauxe.konaste.service.polling.GameWindowPoller
 import dev.bauxe.konaste.utils.ByteArrayReader
-import kotlin.collections.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -18,7 +18,7 @@ class MemoryBackedItemRepository(
     val versionResolver: VersionResolver,
     val memoryClient: MemoryClient,
     val gameWindowPoller: GameWindowPoller
-) : ItemRepository {
+) : ItemRepository, EventListener() {
   private var items: List<Item> = listOf()
   private var itemLock = Mutex()
 
@@ -57,5 +57,9 @@ class MemoryBackedItemRepository(
 
   override suspend fun hasItem(itemId: String): Boolean {
     return getItems().any { item -> item.id == itemId }
+  }
+
+  override fun onLogin() {
+    items = listOf()
   }
 }

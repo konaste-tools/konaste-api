@@ -6,15 +6,16 @@ import dev.bauxe.konaste.client.windowswrapper.Kernel32Wrapper
 import dev.bauxe.konaste.client.windowswrapper.PsapiWrapper
 import dev.bauxe.konaste.models.Path
 import dev.bauxe.konaste.models.memory.PointerSize
+import dev.bauxe.konaste.service.composition.EventManager
 import dev.bauxe.konaste.service.polling.Poller
 import dev.bauxe.konaste.utils.ByteHelpers
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * [dev.bauxe.konaste.client.WindowsMemoryClient] is an interface between konaste-api Sound Voltex
@@ -32,7 +33,8 @@ class WindowsMemoryClient(
     private val clock: Clock,
     context: CoroutineContext,
     pollingFrequency: Duration,
-) : MemoryClient, Poller(context, pollingFrequency) {
+) : MemoryClient, Poller(context, pollingFrequency), KoinComponent {
+  private val eventManager: EventManager by inject()
   private val logger = KotlinLogging.logger {}
   private var procHandle: Pointer? = null
   private var lastUpdatedAt = clock.now()
@@ -165,6 +167,7 @@ class WindowsMemoryClient(
   override suspend fun pollingFn() {
     var currentProcHandle = procHandle
     if (currentProcHandle != null && !isProcessHandleValid(currentProcHandle)) {
+      eventManager.fireOnGameClose()
       logger.info { "Process handle has become invalid - trying to refresh" }
       procHandle = null
       currentProcHandle = null
@@ -180,8 +183,7 @@ class WindowsMemoryClient(
     }
 
     if (IMPORTANT_MODULES.all { module -> getProcessModuleHandle(newProcHandle, module) != null }) {
-      logger.info { "Process handle found" }
-      delay(10.seconds) // delay to ensure offsets are all loaded
+      eventManager.fireOnGameBoot()
       procHandle = newProcHandle
       lastUpdatedAt = clock.now()
     } else {

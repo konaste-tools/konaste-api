@@ -3,6 +3,7 @@ package dev.bauxe.konaste.repository.score
 import com.sun.jna.Pointer
 import dev.bauxe.konaste.models.scores.GlobalHighscore
 import dev.bauxe.konaste.models.scores.UserHighscore
+import dev.bauxe.konaste.service.composition.EventListener
 import dev.bauxe.konaste.service.memory.readers.ObjectReader
 import dev.bauxe.konaste.service.memory.readers.ObjectReaderResult
 import dev.bauxe.konaste.service.memory.versions.PointerReadResult
@@ -15,7 +16,7 @@ import kotlinx.coroutines.sync.withLock
 class MemoryBackedScoreRepository(
     private val objectReader: ObjectReader,
     private val versionResolver: VersionResolver,
-) {
+) : EventListener() {
   private val logger = KotlinLogging.logger {}
   private var userHighscore: List<UserHighscore> = listOf()
   private val userHighscoreLock: Mutex = Mutex()
@@ -122,5 +123,10 @@ class MemoryBackedScoreRepository(
       ObjectReaderResult.Fail -> null
       is ObjectReaderResult.Ok -> result.result
     }
+  }
+
+  override fun onLogin() {
+    userHighscore = listOf()
+    highscores = listOf()
   }
 }
