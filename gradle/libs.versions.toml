@@ -5,6 +5,7 @@ jna = "5.14.0"
 koin = "3.5.3"
 logback = "1.4.14"
 kotlin-logging = "6.0.3"
+sqlite-jdbc = "3.49.1.0"
 
 [libraries]
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
@@ -34,6 +35,8 @@ kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version.re
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
+
 ## test modules
 
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
@@ -44,6 +47,8 @@ ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref 
 
 [bundles]
 jna = ["jna", "jna-platform"]
+
+sqlite = ["sqlite-jdbc"]
 
 ktorServer = ["ktor-server-core", "ktor-server-core-jvm", "ktor-server-content-negotiation", "ktor-server-netty", "ktor-server-config-yaml", "ktor-server-websockets", "ktor-server-websockets-jvm", "ktor-server-openapi", "ktor-server-cors"]
 ktorClient = ["ktor-client-core", "ktor-client-apache5", "ktor-client-content-negotiation"]

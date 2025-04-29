@@ -25,6 +25,7 @@ import dev.bauxe.konaste.repository.music.FileSourceMusicRepository
 import dev.bauxe.konaste.repository.music.MusicRepository
 import dev.bauxe.konaste.repository.nowplaying.MemoryBackedNowPlayingRepository
 import dev.bauxe.konaste.repository.nowplaying.NowPlayingRepository
+import dev.bauxe.konaste.repository.persistence.history.ScoreHistoryRepository
 import dev.bauxe.konaste.repository.score.MemoryBackedScoreRepository
 import dev.bauxe.konaste.repository.state.GameStateRepository
 import dev.bauxe.konaste.repository.state.MemoryBackedGameStateRepository
@@ -155,13 +156,15 @@ fun koinModules(environment: ApplicationEnvironment, config: Config) = module {
   )
   single { DecryptionRepository(decryptionConfiguration) }
   single { VersionRepository(versionConfiguration) }
+  single { ScoreHistoryRepository("scores.db") }
   singleOf(::DecryptionService)
   single { Clock.System } bind Clock::class
   singleOf(::SongService)
   singleOf(::GameInfoService)
   singleOf(::ObjectReader)
-  single { ResultService(Dispatchers.Default, get(), get(), get(), get(), enableDumping) } bind
-      ResultService::class
+  single {
+    ResultService(Dispatchers.Default, get(), get(), get(), get(), enableDumping, get())
+  } bind ResultService::class
 
   val osName = System.getProperty("os.name").lowercase()
   when {

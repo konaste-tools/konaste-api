@@ -58,6 +58,8 @@ dependencies {
     implementation("io.github.smiley4:ktor-swagger-ui:3.4.0")
     implementation("io.ktor:ktor-client-logging:2.3.12")
 
+    implementation(libs.bundles.sqlite)
+
     testImplementation(kotlin("test"))
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.bundles.ktorTest)

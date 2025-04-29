@@ -5,6 +5,7 @@ import dev.bauxe.konaste.client.MemoryResult
 import dev.bauxe.konaste.models.info.GameWindow
 import dev.bauxe.konaste.models.scores.ResultScreen
 import dev.bauxe.konaste.models.scores.ResultScreenData
+import dev.bauxe.konaste.repository.persistence.history.ScoreHistoryRepository
 import dev.bauxe.konaste.service.ImageSize
 import dev.bauxe.konaste.service.SongService
 import dev.bauxe.konaste.service.memory.versions.PointerReadResult
@@ -31,6 +32,7 @@ class ResultService(
     private val gameWindowPoller: GameWindowPoller,
     private val songService: SongService,
     private val enableDumping: Boolean,
+    private val scoreHistoryRepository: ScoreHistoryRepository
 ) {
   private val logger = KotlinLogging.logger {}
   private val resultHistory: MutableList<ResultScreen> = ArrayDeque()
@@ -39,6 +41,7 @@ class ResultService(
 
   init {
     gameWindowPoller.addOnStart(GameWindow.UI_RESULT, this::onResultScreen)
+    loadDb()
   }
 
   fun getResultHistory(): List<ResultScreen> {
@@ -99,9 +102,19 @@ class ResultService(
         file.parentFile.mkdirs()
         FileOutputStream(file).use { it.write(memoryResult.data) }
       }
-      this@ResultService.buildResult(
-              ResultScreenData.Companion.fromByteReader(ByteArrayReader(memoryResult.data)))
-          ?.let { resultHistory.addFirst(it) }
+      val resultScreenData =
+          ResultScreenData.Companion.fromByteReader(ByteArrayReader(memoryResult.data))
+      scoreHistoryRepository.addRecord(resultScreenData, memoryResult.data)
+      this@ResultService.buildResult(resultScreenData)?.let { resultHistory.addFirst(it) }
+    }
+  }
+
+  fun loadDb() {
+    scope.launch {
+      scoreHistoryRepository
+          .getRecords()
+          .mapNotNull { buildResult(it) }
+          .forEach { resultHistory.add(it) }
     }
   }
 }
