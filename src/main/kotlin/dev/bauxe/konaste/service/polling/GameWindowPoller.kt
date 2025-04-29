@@ -34,6 +34,7 @@ class GameWindowPoller(
     logger.info { "Started game window polling with $pollingRate rate" }
 
     addOnStart(GameWindow.UI_LOGGED_IN) { eventManager.fireOnLogin() }
+    addOnStart(GameWindow.UI_END_OF_CREDIT) { eventManager.fireOnLogout() }
     addOnEnd(GameWindow.UI_INIT) { eventManager.fireOnGameStart() }
   }
 
