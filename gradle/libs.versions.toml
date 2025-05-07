@@ -20,6 +20,7 @@ ktor-server-core-jvm = { module = "io.ktor:ktor-server-core-jvm", version.ref = 
 ktor-server-websockets-jvm = { module = "io.ktor:ktor-server-websockets-jvm", version.ref = "ktor" }
 ktor-server-openapi = { module = "io.ktor:ktor-server-openapi", version.ref = "ktor" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-server-resources = { module = "io.ktor:ktor-server-resources", version.ref = "ktor" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-apache5 = { module = "io.ktor:ktor-client-apache5", version.ref = "ktor" }
@@ -50,7 +51,7 @@ jna = ["jna", "jna-platform"]
 
 sqlite = ["sqlite-jdbc"]
 
-ktorServer = ["ktor-server-core", "ktor-server-core-jvm", "ktor-server-content-negotiation", "ktor-server-netty", "ktor-server-config-yaml", "ktor-server-websockets", "ktor-server-websockets-jvm", "ktor-server-openapi", "ktor-server-cors"]
+ktorServer = ["ktor-server-core", "ktor-server-core-jvm", "ktor-server-content-negotiation", "ktor-server-netty", "ktor-server-config-yaml", "ktor-server-websockets", "ktor-server-websockets-jvm", "ktor-server-openapi", "ktor-server-cors", "ktor-server-resources"]
 ktorClient = ["ktor-client-core", "ktor-client-apache5", "ktor-client-content-negotiation"]
 ktorCommon = ["ktor-serialization-kotlinx-json"]
 

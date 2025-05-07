@@ -6,14 +6,14 @@ import dev.bauxe.konaste.models.scores.GlobalHighscore
 import dev.bauxe.konaste.models.scores.UserHighscore
 import dev.bauxe.konaste.repository.ItemRepository
 import dev.bauxe.konaste.repository.score.MemoryBackedScoreRepository
-import dev.bauxe.konaste.service.DifficultyMode.entries
-import dev.bauxe.konaste.service.GradingMode.entries
 import dev.bauxe.konaste.service.polling.GameWindowPoller
 import dev.bauxe.konaste.utils.AggregationDirection
 import dev.bauxe.konaste.utils.Table
 import dev.bauxe.konaste.utils.table
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.math.max
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 class ScoreService(
     private val songService: SongService,
@@ -55,7 +55,7 @@ class ScoreService(
       difficulty: DifficultyMode,
       grade: GradingMode,
       aggregationDirection: AggregationDirection = AggregationDirection.NONE,
-      columnFilterRange: IntRange,
+      columnFilterRange: List<Int>,
       rowFilterRange: IntRange,
       dataFilters: List<suspend (Pair<Difficulty, UserHighscore>) -> Boolean> = listOf(),
   ): Table<Int, Int> {
@@ -77,6 +77,15 @@ class ScoreService(
                       it.second.clearType,
                       max(it.second.oldArcadeClearMark, it.second.arcadeClearMark))
                 }
+              }
+            }
+            GradingMode.SCORE -> {
+              columns(*columnFilterRange.toTypedArray())
+              columnAccessor = {
+                val score =
+                    max(it.second.score, max(it.second.arcadeScore, it.second.oldArcadeScore)) /
+                        10_000
+                columnFilterRange.first { targetScore -> score >= targetScore }
               }
             }
           }
@@ -119,9 +128,10 @@ class ScoreService(
   private suspend fun onSongSelect() = scoreRepository.loadUserHighscoreData(true)
 }
 
+@Serializable
 enum class DifficultyMode(val value: String) {
-  LEVEL("level"),
-  DIFFICULTY("difficulty");
+  @SerialName("level") LEVEL("level"),
+  @SerialName("difficulty") DIFFICULTY("difficulty");
 
   companion object {
     fun from(s: String): DifficultyMode? {
@@ -130,9 +140,11 @@ enum class DifficultyMode(val value: String) {
   }
 }
 
+@Serializable
 enum class GradingMode(val value: String) {
-  GRADE("grade"),
-  CLEAR_MARK("clear_mark");
+  @SerialName("grade") GRADE("grade"),
+  @SerialName("clear_mark") CLEAR_MARK("clear_mark"),
+  @SerialName("score") SCORE("score");
 
   companion object {
     fun from(s: String): GradingMode? {

@@ -52,6 +52,7 @@ import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
@@ -107,6 +108,7 @@ fun Application.module(moduleOverrides: Module? = null) {
         },
     )
   }
+  install(Resources)
   install(SwaggerUI) {
     info {
       title = "Konaste API"

@@ -1,6 +1,5 @@
 package dev.bauxe.konaste.controller.scores
 
-import dev.bauxe.konaste.controller.songs.highscores
 import dev.bauxe.konaste.service.ScoreService
 import dev.bauxe.konaste.service.memory.versions.VersionResolver
 import io.ktor.server.application.*
@@ -12,18 +11,24 @@ fun Application.scoreRouting() {
   val versionResolver by inject<VersionResolver>()
 
   routing {
-    route("/scores") {
-      userScores(scoreService)
-      route("/table/{gradingMode}/{difficultyMode}") { table(scoreService) }
-      route("{songId}") {
-        route("difficulties") { route("{difficultyId}") { userScore(scoreService) } }
-      }
+    userScores(scoreService)
+    userScore(scoreService)
+    table(scoreService)
 
-      route("/highscores") {
-        highscores(scoreService, versionResolver)
-
-        route("{songId}") { route("difficulties") { route("{difficultyId}") {} } }
-      }
-    }
+    highscores(scoreService, versionResolver)
   }
+  //    route("/scores") {
+  ////      userScores(scoreService)
+  //      route("/table/{gradingMode}/{difficultyMode}") { table(scoreService) }
+  //      route("{songId}") {
+  //        route("difficulties") { route("{difficultyId}") { userScore(scoreService) } }
+  //      }
+  //
+  //      route("/highscores") {
+  //        highscores(scoreService, versionResolver)
+  //
+  //        route("{songId}") { route("difficulties") { route("{difficultyId}") {} } }
+  //      }
+  //    }
+  //  }
 }

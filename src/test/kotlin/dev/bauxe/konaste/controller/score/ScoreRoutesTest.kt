@@ -41,20 +41,21 @@ class ScoreRoutesTest :
       test("When lookup songs successful, returns success") {
         coEvery {
           scoreService.getUserTable(
-              eq(DifficultyMode.LEVEL),
-              eq(GradingMode.GRADE),
-              eq(AggregationDirection.NONE),
-              eq(0..10),
-              eq(1..20))
+              DifficultyMode.LEVEL,
+              GradingMode.GRADE,
+              AggregationDirection.NONE,
+              listOf(0, 1, 2, 3, 4, 5),
+              1..5,
+              any())
         } returns table
 
         testApplication {
           partial(module {})
-          application { routing { route("/test") { table(scoreService) } } }
+          application { routing { table(scoreService) } }
 
           val client = createClient { install(ContentNegotiation) { json() } }
 
-          val response = client.get("/test")
+          val response = client.get("/scores/table/grade/level?columnRange=0..5&rowRange=1..5")
           response.status shouldBe HttpStatusCode.OK
 
           val body = response.body<Table<String, Int>>()
@@ -67,22 +68,23 @@ class ScoreRoutesTest :
       test("When gradingMode and difficultyMode are set, convert columns and rows") {
         coEvery {
           scoreService.getUserTable(
-              eq(DifficultyMode.DIFFICULTY),
-              eq(GradingMode.CLEAR_MARK),
-              eq(AggregationDirection.NONE),
-              eq(0..5),
-              eq(1..5))
+              DifficultyMode.DIFFICULTY,
+              GradingMode.CLEAR_MARK,
+              AggregationDirection.NONE,
+              listOf(0, 1, 2, 3, 4, 5),
+              1..5,
+              any())
         } returns table
 
         testApplication {
           partial(module {})
-          application {
-            routing { route("/{gradingMode}/{difficultyMode}") { table(scoreService) } }
-          }
+          application { routing { table(scoreService) } }
 
           val client = createClient { install(ContentNegotiation) { json() } }
 
-          val response = client.get("/clear_mark/difficulty")
+          val response =
+              client.get(
+                  "/scores/table/clear_mark/difficulty?columnRange=0..5&rowRange=1..5&ignoreMissingItems=false")
           response.status shouldBe HttpStatusCode.OK
 
           val body = response.body<Table<String, String>>()
@@ -94,31 +96,27 @@ class ScoreRoutesTest :
         }
       }
 
-      test("When invalid gradingMode is passed, returns not found") {
+      test("When invalid gradingMode is passed, returns bad request") {
         testApplication {
           partial(module {})
-          application {
-            routing { route("/{gradingMode}/{difficultyMode}") { table(scoreService) } }
-          }
+          application { routing { table(scoreService) } }
 
           val client = createClient { install(ContentNegotiation) { json() } }
 
-          val response = client.get("/not_valid/difficulty")
-          response.status shouldBe HttpStatusCode.NotFound
+          val response = client.get("/scores/table/not_valid/difficulty")
+          response.status shouldBe HttpStatusCode.BadRequest
         }
       }
 
-      test("When invalid difficultyMode is passed, returns not found") {
+      test("When invalid difficultyMode is passed, returns bad request") {
         testApplication {
           partial(module {})
-          application {
-            routing { route("/{gradingMode}/{difficultyMode}") { table(scoreService) } }
-          }
+          application { routing { table(scoreService) } }
 
           val client = createClient { install(ContentNegotiation) { json() } }
 
-          val response = client.get("/clear_mark/not_valid")
-          response.status shouldBe HttpStatusCode.NotFound
+          val response = client.get("/scores/table/clear_mark/not_valid")
+          response.status shouldBe HttpStatusCode.BadRequest
         }
       }
     }) {}

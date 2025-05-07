@@ -1,6 +1,6 @@
 package dev.bauxe.konaste.utils
 
-import dev.bauxe.konaste.utils.AggregationDirection.entries
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class TableBuilder<T1, T2, T3>(private val data: List<T1>) {
@@ -101,12 +101,13 @@ class TableBuilder<T1, T2, T3>(private val data: List<T1>) {
   }
 }
 
+@Serializable
 enum class AggregationDirection(val value: String) {
-  NONE("none"),
-  LEFT("left"),
-  RIGHT("right"),
-  UP("up"),
-  DOWN("down");
+  @SerialName("none") NONE("none"),
+  @SerialName("left") LEFT("left"),
+  @SerialName("right") RIGHT("right"),
+  @SerialName("up") UP("up"),
+  @SerialName("down") DOWN("down");
 
   companion object {
     fun from(s: String): AggregationDirection {
