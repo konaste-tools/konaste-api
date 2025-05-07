@@ -114,7 +114,8 @@ class GameInfoService(
         return null
       }
       is DataReadResult.Ok -> {
-        lastPointer = pointer
+        // todo: uncomment once hook added for song start (eg. song count increment)
+        //          lastPointer = pointer
         result.data
       }
     }
