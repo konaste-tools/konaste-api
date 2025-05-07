@@ -17,14 +17,14 @@ import dev.bauxe.konaste.utils.ClearMarkConverter
 import dev.bauxe.konaste.utils.DifficultyConverter
 import dev.bauxe.konaste.utils.GradeConverter
 import io.github.oshai.kotlinlogging.KotlinLogging
-import java.io.File
-import java.io.FileOutputStream
-import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
+import java.io.File
+import java.io.FileOutputStream
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 class ResultService(
     context: CoroutineContext,
@@ -42,7 +42,6 @@ class ResultService(
 
   init {
     gameWindowPoller.addOnStart(GameWindow.UI_RESULT, this::onResultScreen)
-    loadDb()
   }
 
   fun getResultHistory(): List<ResultScreen> {
@@ -109,6 +108,11 @@ class ResultService(
       this@ResultService.buildResult(resultScreenData)?.let { resultHistory.addFirst(it) }
     }
   }
+
+    override fun onGameStart() {
+        resultHistory.clear()
+        loadDb()
+    }
 
   override fun onLogin() {
     resultHistory.clear()

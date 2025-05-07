@@ -111,7 +111,7 @@ class GameInfoService(
       is DataReadResult.Error -> {
         logger.error { "Failed to read play data: ${result.reason}" }
         lastPointer = null
-        return null
+        null
       }
       is DataReadResult.Ok -> {
         // todo: uncomment once hook added for song start (eg. song count increment)
