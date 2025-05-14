@@ -18,14 +18,14 @@ import dev.bauxe.konaste.utils.ClearMarkConverter
 import dev.bauxe.konaste.utils.DifficultyConverter
 import dev.bauxe.konaste.utils.GradeConverter
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock.System
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock.System
 
 class ResultService(
     context: CoroutineContext,
@@ -43,7 +43,7 @@ class ResultService(
   private val scope = CoroutineScope(context)
 
   init {
-    gameWindowPoller.addOnStart(GameWindow.UI_RESULT, this::onResultScreen)
+    gameWindowPoller.addOnChange(this::onChange)
   }
 
   fun getResultHistory(): List<ResultScreen> {
@@ -87,6 +87,12 @@ class ResultService(
         GradeConverter.Companion.convertGrade(screen.grade),
         GradeConverter.Companion.convertGrade(screen.bestGrade),
         songService.getSongImagePath(screen.songId, song.ascii, screen.difficulty, ImageSize.S))
+  }
+
+  fun onChange(from: GameWindow, to: GameWindow) {
+    if (from != GameWindow.UI_UNKNOWN && to == GameWindow.UI_RESULT) {
+      onResultScreen()
+    }
   }
 
   fun onResultScreen() {
