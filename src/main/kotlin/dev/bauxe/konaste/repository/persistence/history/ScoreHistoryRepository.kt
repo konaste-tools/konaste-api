@@ -3,6 +3,7 @@ package dev.bauxe.konaste.repository.persistence.history
 import dev.bauxe.konaste.models.UnknownField
 import dev.bauxe.konaste.models.scores.ResultScreenData
 import dev.bauxe.konaste.repository.persistence.history.migrations.Migration1
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.sql.Connection
 import java.sql.DriverManager
 import kotlin.math.min
@@ -11,6 +12,7 @@ class ScoreHistoryRepository(database: String) {
   companion object {
     private const val CURRENT_VERSION = 1
     private val MIGRATIONS = listOf(Migration1())
+    private val LOGGER = KotlinLogging.logger {}
   }
 
   private val connection: Connection = DriverManager.getConnection("jdbc:sqlite:$database")
@@ -71,6 +73,7 @@ class ScoreHistoryRepository(database: String) {
       statement.executeUpdate()
     }
     connection.commit()
+    LOGGER.info { "Stored new result in database" }
   }
 
   fun getRecords(limit: Int = 50): List<ResultScreenData> {
@@ -186,6 +189,7 @@ class ScoreHistoryRepository(database: String) {
                 long68 = UnknownField.fromLong(0)))
       }
     }
+    LOGGER.info { "Loaded ${results.size} songs from database" }
     return results
   }
 

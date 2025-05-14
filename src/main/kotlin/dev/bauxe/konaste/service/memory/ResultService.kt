@@ -9,6 +9,7 @@ import dev.bauxe.konaste.repository.persistence.history.ScoreHistoryRepository
 import dev.bauxe.konaste.service.ImageSize
 import dev.bauxe.konaste.service.SongService
 import dev.bauxe.konaste.service.composition.EventListener
+import dev.bauxe.konaste.service.composition.EventManager
 import dev.bauxe.konaste.service.memory.versions.PointerReadResult
 import dev.bauxe.konaste.service.memory.versions.VersionResolver
 import dev.bauxe.konaste.service.polling.GameWindowPoller
@@ -33,8 +34,9 @@ class ResultService(
     private val gameWindowPoller: GameWindowPoller,
     private val songService: SongService,
     private val enableDumping: Boolean,
-    private val scoreHistoryRepository: ScoreHistoryRepository
-) : EventListener() {
+    private val scoreHistoryRepository: ScoreHistoryRepository,
+    eventManager: EventManager,
+) : EventListener(eventManager) {
   private val logger = KotlinLogging.logger {}
   private val resultHistory: MutableList<ResultScreen> = ArrayDeque()
   private val resultHistoryData: MutableList<ResultScreenData> = ArrayDeque()
@@ -95,7 +97,7 @@ class ResultService(
       val memoryResult = memoryClient.read(pointerResult.pointer, ResultScreenData.Companion.SIZE)
       if (memoryResult !is MemoryResult.Ok) return@launch
       if (enableDumping) {
-        var file =
+        val file =
             File(
                 "${java.lang.System.getProperty("user.dir")}/dumps/result/${System.now().toString().replace(':', '_')}.bin")
         logger.debug { "Dumping result to ${file.canonicalPath}" }
@@ -109,10 +111,10 @@ class ResultService(
     }
   }
 
-    override fun onGameStart() {
-        resultHistory.clear()
-        loadDb()
-    }
+  override fun onGameStart() {
+    resultHistory.clear()
+    loadDb()
+  }
 
   override fun onLogin() {
     resultHistory.clear()
@@ -124,6 +126,7 @@ class ResultService(
       scoreHistoryRepository
           .getRecords()
           .mapNotNull { buildResult(it) }
+          .apply { logger.info { "Loaded ${this.size} score history records" } }
           .forEach { resultHistory.add(it) }
     }
   }

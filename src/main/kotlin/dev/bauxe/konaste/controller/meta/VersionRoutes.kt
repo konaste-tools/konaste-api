@@ -63,36 +63,3 @@ fun Route.versions(versionResolver: VersionResolver) {
     )
   }
 }
-
-fun Route.newVersionTest(versionResolver: VersionResolver) {
-  get({
-    operationId = "newVersionTest"
-    summary = "Compare a new version code against an existing version's data points"
-    request {
-      pathParameter<String>("versionCode") {
-        description = "Expected version code of new version"
-        example("versionCode example", { value = "QCV:J:B:A:2024022000" })
-      }
-      pathParameter<String>("comparisonCode") {
-        description = "Version to compare against"
-        example("versionCode example", { value = "QCV:J:B:A:2023022000" })
-      }
-    }
-    response {
-      code(HttpStatusCode.OK) {}
-      code(HttpStatusCode.NotFound) { description = "Could not find comparison version" }
-    }
-  }) {
-    val newVersionCode = call.parameters["versionCode"]!!
-    val oldVersionCode = call.parameters["comparisonCode"]!!
-    when (val version =
-        versionResolver.getSupportedVersions().find {
-          it.lowercase() == oldVersionCode.lowercase()
-        }) {
-      null -> call.respond(HttpStatusCode.NotFound)
-      else -> {
-        call.respond(versionResolver.testNewVersion(newVersionCode, version))
-      }
-    }
-  }
-}

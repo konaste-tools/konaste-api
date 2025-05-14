@@ -12,9 +12,6 @@ fun Application.metaRouting() {
       route("version") { version(versionResolver) }
       route("versions") { versions(versionResolver) }
       route("uptime") {}
-      route("versiontest") {
-        route("{versionCode}") { route("{comparisonCode}") { newVersionTest(versionResolver) } }
-      }
     }
   }
 }

@@ -26,7 +26,10 @@ class GameWindowPollerTest :
         val scheduler = TestCoroutineScheduler()
         val gameWindowPoller =
             GameWindowPoller(
-                StandardTestDispatcher(scheduler), 100.milliseconds, gameStateRepository)
+                StandardTestDispatcher(scheduler),
+                eventManager,
+                100.milliseconds,
+                gameStateRepository)
 
         val mockFn = mockk<suspend () -> Unit>()
         coEvery { mockFn.invoke() } returns Unit
@@ -47,7 +50,10 @@ class GameWindowPollerTest :
         val scheduler = TestCoroutineScheduler()
         val gameWindowPoller =
             GameWindowPoller(
-                StandardTestDispatcher(scheduler), 100.milliseconds, gameStateRepository)
+                StandardTestDispatcher(scheduler),
+                eventManager,
+                100.milliseconds,
+                gameStateRepository)
 
         val mockFn = mockk<suspend () -> Unit>()
         coEvery { mockFn.invoke() } returns Unit
@@ -67,7 +73,10 @@ class GameWindowPollerTest :
         val scheduler = TestCoroutineScheduler()
         val gameWindowPoller =
             GameWindowPoller(
-                StandardTestDispatcher(scheduler), 100.milliseconds, gameStateRepository)
+                StandardTestDispatcher(scheduler),
+                eventManager,
+                100.milliseconds,
+                gameStateRepository)
 
         val mockFn = mockk<suspend () -> Unit>()
         coEvery { mockFn.invoke() } returns Unit
@@ -88,7 +97,10 @@ class GameWindowPollerTest :
         val scheduler = TestCoroutineScheduler()
         val gameWindowPoller =
             GameWindowPoller(
-                StandardTestDispatcher(scheduler), 100.milliseconds, gameStateRepository)
+                StandardTestDispatcher(scheduler),
+                eventManager,
+                100.milliseconds,
+                gameStateRepository)
 
         val mockFn = mockk<suspend () -> Unit>()
         gameWindowPoller.addOnStart(GameWindow.UI_BOOT, mockFn)
@@ -108,7 +120,10 @@ class GameWindowPollerTest :
         val scheduler = TestCoroutineScheduler()
         val gameWindowPoller =
             GameWindowPoller(
-                StandardTestDispatcher(scheduler), 100.milliseconds, gameStateRepository)
+                StandardTestDispatcher(scheduler),
+                eventManager,
+                100.milliseconds,
+                gameStateRepository)
 
         val mockFn = mockk<suspend () -> Unit>()
         gameWindowPoller.addOnEnd(GameWindow.UI_BOOT, mockFn)
@@ -128,7 +143,10 @@ class GameWindowPollerTest :
         val scheduler = TestCoroutineScheduler()
         val gameWindowPoller =
             GameWindowPoller(
-                StandardTestDispatcher(scheduler), 100.milliseconds, gameStateRepository)
+                StandardTestDispatcher(scheduler),
+                eventManager,
+                100.milliseconds,
+                gameStateRepository)
 
         val mockFn = mockk<suspend (GameWindow, GameWindow) -> Unit>()
         coEvery { mockFn.invoke(any(), any()) } returns Unit

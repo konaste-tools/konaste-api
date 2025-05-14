@@ -1,6 +1,10 @@
 package dev.bauxe.konaste.service.composition
 
-abstract class EventListener {
+abstract class EventListener(eventManager: EventManager) {
+  init {
+    eventManager.register(this)
+  }
+
   /**
    * [onGameBoot] is fired when a new instance of the sv6c.exe process has been found. Note that
    * this will typically fire prior to any memory availability. If you would like to utilise the

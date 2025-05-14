@@ -1,6 +1,16 @@
 package dev.bauxe.konaste.service.composition
 
-class EventManager(val listeners: List<EventListener>) {
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+class EventManager() {
+  private val listeners: MutableList<EventListener> = mutableListOf()
+  private val logger = KotlinLogging.logger {}
+
+  fun register(listener: EventListener) {
+    logger.info { "Registering event listener ${listener::class}" }
+    listeners.add(listener)
+  }
+
   fun fireOnGameBoot() {
     listeners.forEach { it.onGameBoot() }
   }

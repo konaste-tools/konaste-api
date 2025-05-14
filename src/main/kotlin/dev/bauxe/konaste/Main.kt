@@ -56,6 +56,9 @@ import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.Clock
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -68,9 +71,6 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
-import java.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 fun main(args: Array<String>) {
   EngineMain.main(
@@ -167,7 +167,7 @@ fun koinModules(environment: ApplicationEnvironment, config: Config) = module {
   singleOf(::GameInfoService)
   singleOf(::ObjectReader)
   single {
-    ResultService(Dispatchers.Default, get(), get(), get(), get(), enableDumping, get())
+    ResultService(Dispatchers.Default, get(), get(), get(), get(), enableDumping, get(), get())
   } bind ResultService::class bind EventListener::class
 
   val osName = System.getProperty("os.name").lowercase()
@@ -178,6 +178,7 @@ fun koinModules(environment: ApplicationEnvironment, config: Config) = module {
             kernel32Wrapper = get(),
             psapiWrapper = get(),
             clock = get(),
+            eventManager = get(),
             context = Dispatchers.Default,
             pollingFrequency = 15.seconds)
       } bind MemoryClient::class
@@ -208,19 +209,20 @@ fun koinModules(environment: ApplicationEnvironment, config: Config) = module {
         get(),
         get(),
         get(),
+        get(),
         false,
         environment.config.propertyOrNull("konaste.version")?.getString())
   } bind VersionResolver::class bind EventListener::class
-  single { GameWindowPoller(Dispatchers.Default, 50.milliseconds, get()) } bind
+  single { GameWindowPoller(Dispatchers.Default, get(), 50.milliseconds, get()) } bind
       GameWindowPoller::class bind
       EventListener::class
   single { FileSourceMusicRepository(get()) } bind MusicRepository::class
   single { MemoryBackedNowPlayingRepository(get(), get()) } bind NowPlayingRepository::class
   single { MemoryBackedGameStateRepository(get(), get()) } bind GameStateRepository::class
-  single { MemoryBackedScoreRepository(get(), get()) } bind
+  single { MemoryBackedScoreRepository(get(), get(), get()) } bind
       MemoryBackedScoreRepository::class bind
       EventListener::class
-  single { MemoryBackedItemRepository(get(), get(), get()) } bind ItemRepository::class
+  single { MemoryBackedItemRepository(get(), get(), get(), get()) } bind ItemRepository::class
 
-  single { EventManager(getAll(EventListener::class)) } bind EventManager::class
+  singleOf(::EventManager)
 }

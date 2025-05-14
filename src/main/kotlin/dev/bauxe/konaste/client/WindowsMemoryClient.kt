@@ -15,7 +15,6 @@ import kotlin.time.Duration
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
  * [dev.bauxe.konaste.client.WindowsMemoryClient] is an interface between konaste-api Sound Voltex
@@ -31,10 +30,10 @@ class WindowsMemoryClient(
     private val kernel32Wrapper: Kernel32Wrapper,
     private val psapiWrapper: PsapiWrapper,
     private val clock: Clock,
+    private val eventManager: EventManager,
     context: CoroutineContext,
     pollingFrequency: Duration,
 ) : MemoryClient, Poller(context, pollingFrequency), KoinComponent {
-  private val eventManager: EventManager by inject()
   private val logger = KotlinLogging.logger {}
   private var procHandle: Pointer? = null
   private var lastUpdatedAt = clock.now()
@@ -56,7 +55,7 @@ class WindowsMemoryClient(
   }
 
   override fun followPath(path: Path): PointerResult {
-    val procHandle = getStoredProcessHandle() ?: return PointerResult.NotFound
+    val procHandle = getStoredProcessHandle() ?: return PointerResult.ProcessNotFound
     val module = getProcessModuleHandle(procHandle, path.module) ?: return PointerResult.NotFound
     val moduleInfo =
         psapiWrapper.getModuleBaseAddress(procHandle, module) ?: return PointerResult.NotFound

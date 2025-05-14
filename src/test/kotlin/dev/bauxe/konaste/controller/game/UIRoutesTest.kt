@@ -3,6 +3,7 @@ package dev.bauxe.konaste.controller.game
 import dev.bauxe.konaste.helpers.partial
 import dev.bauxe.konaste.models.info.GameWindow
 import dev.bauxe.konaste.repository.state.GameStateRepository
+import dev.bauxe.konaste.service.composition.EventManager
 import dev.bauxe.konaste.service.memory.GameInfoService
 import dev.bauxe.konaste.service.polling.GameWindowPoller
 import io.kotest.core.spec.style.FunSpec
@@ -28,6 +29,7 @@ class UIRoutesTest :
 
       val gameInfoService = mockk<GameInfoService>()
       val gameStateRepository = mockk<GameStateRepository>()
+      val eventManager = mockk<EventManager>()
 
       test("Can fetch current UI") {
         every { gameInfoService.getGameWindow() } returns GameWindow.UI_AUTOPLAY
@@ -54,7 +56,8 @@ class UIRoutesTest :
 
         val scheduler = TestCoroutineScheduler()
         val context = StandardTestDispatcher(scheduler)
-        val gameWindowPoller = GameWindowPoller(context, 100.milliseconds, gameStateRepository)
+        val gameWindowPoller =
+            GameWindowPoller(context, eventManager, 100.milliseconds, gameStateRepository)
 
         testApplication {
           partial(module {})

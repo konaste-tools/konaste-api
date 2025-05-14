@@ -6,12 +6,12 @@ import dev.bauxe.konaste.client.MemoryClient
 import dev.bauxe.konaste.client.MemoryResult
 import dev.bauxe.konaste.client.PointerResult
 import dev.bauxe.konaste.models.Address
-import dev.bauxe.konaste.models.AddressType
 import dev.bauxe.konaste.models.ConvertableFromByteReader
 import dev.bauxe.konaste.models.ReducedGameVersion
 import dev.bauxe.konaste.models.memory.LookupPath
 import dev.bauxe.konaste.repository.version.VersionRepository
 import dev.bauxe.konaste.service.composition.EventListener
+import dev.bauxe.konaste.service.composition.EventManager
 import dev.bauxe.konaste.utils.ByteArrayReader
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.time.Duration.Companion.seconds
@@ -27,9 +27,10 @@ open class VersionResolver(
     private val memoryClient: MemoryClient,
     private val clock: Clock,
     private val versionRepository: VersionRepository,
+    eventManager: EventManager,
     private val offline: Boolean = false,
     private val forceVersion: String?,
-) : EventListener() {
+) : EventListener(eventManager) {
   companion object {
     private val offlineVersion = Ver2025031400()
   }
@@ -164,81 +165,6 @@ open class VersionResolver(
       }
     }
     return PointerReadResult.Error(ErrorReason.MEMORY_PATH_FAILURE)
-  }
-
-  suspend fun testNewVersion(newVersion: String, comparison: String): Map<String, String> {
-    return mapOf()
-    logger.info { "Testing paths for: $newVersion" }
-    val result = mutableMapOf<String, String>()
-    val comparisonGameVersion =
-        versionRepository.getKonasteVersionDefintion(comparison) ?: return result
-    val reducedGameVersion =
-        ReducedGameVersion(
-            comparisonGameVersion.version,
-            comparisonGameVersion.addresses[AddressType.VERSION]!!.paths[0])
-    when (val versionPointer = getVersionPointer(reducedGameVersion)) {
-      PointerResult.NotFound -> {
-        logger.warn { "Could not follow version pointer" }
-        result["version_pointer"] = "not_found"
-      }
-      is PointerResult.Ok -> {
-        logger.info {
-          "Validation attempt for version string, result was: ${validateVersion(newVersion,
-     versionPointer.pointer)}"
-        }
-        result["version_pointer"] = "ok"
-      }
-      PointerResult.ProcessNotFound -> {
-        logger.warn { "No sv6c.exe process" }
-        result["version_pointer"] = "process_not_found"
-        return result
-      }
-    }
-
-    val comparisonVersion = DynamicVersion(comparisonGameVersion)
-    result += testNewVersionPath(comparisonVersion, { v -> v.getCurrentUIPath() }, "current_ui")
-    result += testNewVersionPath(comparisonVersion, { v -> v.getNowPlayingPath() }, "now_playing")
-    result +=
-        testNewVersionPath(
-            comparisonVersion, { v -> v.getUserScoreTablePath() }, "user_score_table")
-    result +=
-        testNewVersionPath(
-            comparisonVersion, { v -> v.getCurrentPlayDataPath() }, "current_play_data")
-    result +=
-        testNewVersionPath(comparisonVersion, { v -> v.getResultScreenPath() }, "result_screen")
-    result +=
-        testNewVersionPath(comparisonVersion, { v -> v.getHighscoreTablePath() }, "highscore_table")
-    result += testNewVersionPath(comparisonVersion, { v -> v.getUserInfoPath() }, "user_info")
-    return result
-  }
-
-  private fun testNewVersionPath(
-      version: Version,
-      call: (Version) -> Address,
-      testName: String
-  ): Pair<String, String> {
-    val address =
-        try {
-          call(version)
-        } catch (e: NotImplementedError) {
-          return testName to "not_implemented"
-        }
-    when (memoryClient.followPath(address.paths[0])) {
-      PointerResult.NotFound -> {
-        logger.warn { "No pointer found for $testName" }
-        return testName to "not_found"
-      }
-      is PointerResult.Ok -> {
-        logger.info {
-          "Pointer resolved for $testName - note this does not guarantee a correct pointer!"
-        }
-        return testName to "ok"
-      }
-      PointerResult.ProcessNotFound -> {
-        logger.warn { "No sv6c.exe process" }
-        return testName to "process_not_found"
-      }
-    }
   }
 
   private fun getVersionPointer(version: ReducedGameVersion): PointerResult {

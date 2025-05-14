@@ -8,6 +8,7 @@ import dev.bauxe.konaste.models.GameVersion
 import dev.bauxe.konaste.models.Path
 import dev.bauxe.konaste.models.ReducedGameVersion
 import dev.bauxe.konaste.repository.version.VersionRepository
+import dev.bauxe.konaste.service.composition.EventManager
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -24,6 +25,7 @@ class VersionResolverTest :
       val memoryClient = mockk<MemoryClient>()
       val versionRepository = mockk<VersionRepository>()
       val clock = mockk<Clock>(relaxed = true)
+      val eventManager = mockk<EventManager>()
 
       beforeAny { clearAllMocks() }
 
@@ -33,7 +35,8 @@ class VersionResolverTest :
         every { memoryClient.lastUpdatedAt() } returns Instant.DISTANT_FUTURE
         coEvery { versionRepository.getSupportedKonasteVersions("0.1.1a") } returns emptyList()
 
-        val versionResolver = VersionResolver(memoryClient, clock, versionRepository, false, null)
+        val versionResolver =
+            VersionResolver(memoryClient, clock, versionRepository, eventManager, false, null)
         versionResolver.onGameBoot()
 
         val result = versionResolver.getActiveVersion()
@@ -58,7 +61,8 @@ class VersionResolverTest :
         coEvery { versionRepository.getKonasteVersionDefintion(eq("KFC:TEST:1")) } returns
             resolvedVersion
 
-        val versionResolver = VersionResolver(memoryClient, clock, versionRepository, false, null)
+        val versionResolver =
+            VersionResolver(memoryClient, clock, versionRepository, eventManager, false, null)
         versionResolver.onGameBoot()
         val result = versionResolver.getActiveVersion()
 
@@ -69,7 +73,8 @@ class VersionResolverTest :
         every { memoryClient.lastUpdatedAt() } returns
             Instant.fromEpochMilliseconds(0).minus(1.seconds)
 
-        val versionResolver = VersionResolver(memoryClient, clock, versionRepository, false, null)
+        val versionResolver =
+            VersionResolver(memoryClient, clock, versionRepository, eventManager, false, null)
         versionResolver.onGameBoot()
         val result = versionResolver.getActiveVersion()
 
@@ -99,7 +104,8 @@ class VersionResolverTest :
             resolvedVersion andThenThrows
             RuntimeException()
 
-        val versionResolver = VersionResolver(memoryClient, clock, versionRepository, false, null)
+        val versionResolver =
+            VersionResolver(memoryClient, clock, versionRepository, eventManager, false, null)
         versionResolver.onGameBoot()
         val initialResult = versionResolver.getActiveVersion()
         val nextResult = versionResolver.getActiveVersion()

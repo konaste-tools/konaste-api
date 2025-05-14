@@ -12,14 +12,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 class GameWindowPoller(
     context: CoroutineContext,
+    private val eventManager: EventManager,
     private val pollingRate: Duration,
     private val gameStateRepository: GameStateRepository,
-) : EventListener(), KoinComponent {
-  private val eventManager: EventManager by inject()
+) : EventListener(eventManager), KoinComponent {
   private val logger = KotlinLogging.logger {}
 
   private val onStart = HashMap<GameWindow, List<suspend () -> Unit>>()
@@ -40,32 +39,32 @@ class GameWindowPoller(
 
   fun addOnStart(window: GameWindow, fn: suspend () -> Unit) {
     onStart[window] = onStart[window]?.plus(fn) ?: listOf(fn)
-    logger.info { "Added function ${fn.hashCode()} to onStart" }
+    logger.info { "Added function ${fn::class} to onStart" }
   }
 
   fun removeOnStart(window: GameWindow, fn: suspend () -> Unit) {
     onStart[window] = onStart[window]?.minus(fn) ?: listOf()
-    logger.info { "Removed function ${fn.hashCode()} from onStart" }
+    logger.info { "Removed function ${fn::class} from onStart" }
   }
 
   fun addOnEnd(window: GameWindow, fn: suspend () -> Unit) {
     onEnd[window] = onEnd[window]?.plus(fn) ?: listOf(fn)
-    logger.info { "Added function ${fn.hashCode()} to onEnd" }
+    logger.info { "Added function ${fn::class} to onEnd" }
   }
 
   fun removeOnEnd(window: GameWindow, fn: suspend () -> Unit) {
     onEnd[window] = onEnd[window]?.minus(fn) ?: listOf()
-    logger.info { "Removed function ${fn.hashCode()} from onEnd" }
+    logger.info { "Removed function ${fn::class} from onEnd" }
   }
 
   fun addOnChange(fn: suspend (GameWindow, GameWindow) -> Unit) {
     onChange = onChange.plus(fn)
-    logger.info { "Added function ${fn.hashCode()} to onChange" }
+    logger.info { "Added function ${fn::class} to onChange" }
   }
 
   fun removeOnChange(fn: suspend (GameWindow, GameWindow) -> Unit) {
     onChange = onChange.minus(fn)
-    logger.info { "Removed function ${fn.hashCode()} from onChange" }
+    logger.info { "Removed function ${fn::class} from onChange" }
   }
 
   private fun start() {

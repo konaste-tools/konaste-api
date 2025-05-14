@@ -7,6 +7,7 @@ import dev.bauxe.konaste.models.info.GameWindow
 import dev.bauxe.konaste.models.items.Item
 import dev.bauxe.konaste.models.items.ItemsArea
 import dev.bauxe.konaste.service.composition.EventListener
+import dev.bauxe.konaste.service.composition.EventManager
 import dev.bauxe.konaste.service.memory.versions.DataReadResult
 import dev.bauxe.konaste.service.memory.versions.VersionResolver
 import dev.bauxe.konaste.service.polling.GameWindowPoller
@@ -17,8 +18,9 @@ import kotlinx.coroutines.sync.withLock
 class MemoryBackedItemRepository(
     val versionResolver: VersionResolver,
     val memoryClient: MemoryClient,
-    val gameWindowPoller: GameWindowPoller
-) : ItemRepository, EventListener() {
+    gameWindowPoller: GameWindowPoller,
+    eventManager: EventManager,
+) : ItemRepository, EventListener(eventManager) {
   private var items: List<Item> = listOf()
   private var itemLock = Mutex()
 
