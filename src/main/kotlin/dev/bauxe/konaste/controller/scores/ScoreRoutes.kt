@@ -9,9 +9,8 @@ import dev.bauxe.konaste.utils.ClearMarkConverter
 import dev.bauxe.konaste.utils.DifficultyConverter
 import dev.bauxe.konaste.utils.GradeConverter
 import dev.bauxe.konaste.utils.Table
-import io.github.smiley4.ktorswaggerui.dsl.routing.resources.get
+import io.github.smiley4.ktoropenapi.resources.get
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 

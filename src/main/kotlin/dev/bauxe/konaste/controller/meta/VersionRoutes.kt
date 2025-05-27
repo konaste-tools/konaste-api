@@ -3,7 +3,7 @@ package dev.bauxe.konaste.controller.meta
 import dev.bauxe.konaste.controller.game.models.VersionResponse
 import dev.bauxe.konaste.service.memory.versions.VersionResolver
 import dev.bauxe.konaste.service.memory.versions.VersionResult
-import io.github.smiley4.ktorswaggerui.dsl.routing.get
+import io.github.smiley4.ktoropenapi.get
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*

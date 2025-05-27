@@ -2,7 +2,7 @@ package dev.bauxe.konaste.controller.songs
 
 import dev.bauxe.konaste.controller.game.models.SongResponse
 import dev.bauxe.konaste.service.SongService
-import io.github.smiley4.ktorswaggerui.dsl.routing.get
+import io.github.smiley4.ktoropenapi.get
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*

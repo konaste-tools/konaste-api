@@ -33,6 +33,12 @@ fun Application.gameRouting() {
       route("files") { getFile(decryptionService) }
       route("items") { get { call.respond(itemRepository.getItems()) } }
     }
+    route("sse") {
+      route("game") {
+        route("ui") { sseUi(gameWindowPoller) }
+        route("nowplaying") { route("stats") { nowPlayingInfoSse(gameInfoService) } }
+      }
+    }
     route("ws") {
       route("game") {
         route("ui") { websocketUi(gameWindowPoller) }

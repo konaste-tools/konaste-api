@@ -218,7 +218,7 @@ open class VersionResolver(
 
   override fun onGameBoot() {
     scope.launch {
-      delay(30.seconds)
+      delay(15.seconds)
       ready = true
     }
   }

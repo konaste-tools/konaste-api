@@ -42,10 +42,9 @@ import dev.bauxe.konaste.service.memory.readers.ObjectReader
 import dev.bauxe.konaste.service.memory.versions.VersionResolver
 import dev.bauxe.konaste.service.polling.GameWindowPoller
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.smiley4.ktorswaggerui.SwaggerUI
-import io.github.smiley4.ktorswaggerui.dsl.routing.get
-import io.github.smiley4.ktorswaggerui.routing.openApiSpec
-import io.github.smiley4.ktorswaggerui.routing.swaggerUI
+import io.github.smiley4.ktoropenapi.OpenApi
+import io.github.smiley4.ktoropenapi.get
+import io.github.smiley4.ktoropenapi.openApi
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -55,8 +54,8 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sse.*
 import io.ktor.server.websocket.*
-import java.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -86,11 +85,13 @@ fun Application.module(moduleOverrides: Module? = null) {
   install(
       WebSockets,
   ) {
-    pingPeriod = Duration.ofSeconds(15)
-    timeout = Duration.ofSeconds(15)
+    pingPeriod = 15.seconds
+    timeout = 15.seconds
     maxFrameSize = Long.MAX_VALUE
     masking = false
   }
+  install(SSE) {}
+
   install(Koin) {
     slf4jLogger()
     modules(
@@ -109,17 +110,18 @@ fun Application.module(moduleOverrides: Module? = null) {
     )
   }
   install(Resources)
-  install(SwaggerUI) {
-    info {
-      title = "Konaste API"
-      version = "latest"
-      description = "API shim between web server and Konaste."
-    }
-    server {
-      url = "http://localhost:4573"
-      description = "Konaste Server"
-    }
-  }
+  install(OpenApi)
+  //  install(SwaggerUI) {
+  //    info {
+  //      title = "Konaste API"
+  //      version = "latest"
+  //      description = "API shim between web server and Konaste."
+  //    }
+  //    server {
+  //      url = "http://localhost:4573"
+  //      description = "Konaste Server"
+  //    }
+  //  }
 
   gameRouting()
   metaRouting()
@@ -137,9 +139,9 @@ fun Application.module(moduleOverrides: Module? = null) {
               "Hello!",
           )
         }
-    route("api.json") { openApiSpec() }
+    route("api.json") { openApi() }
     // Create a route for the swagger-ui using the openapi-spec at "/api.json".
-    route("swagger") { swaggerUI("/api.json") }
+    //    route("swagger") { swaggerUI("/api.json") }
   }
 }
 

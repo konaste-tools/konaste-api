@@ -9,11 +9,11 @@ import dev.bauxe.konaste.service.ImageSize
 import dev.bauxe.konaste.service.SongService
 import dev.bauxe.konaste.service.memory.GameInfoService
 import dev.bauxe.konaste.service.memory.ResultService
-import io.github.smiley4.ktorswaggerui.dsl.routing.get
+import io.github.smiley4.ktoropenapi.get
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sse.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
@@ -117,6 +117,28 @@ fun Route.gameScoreinfo(gameInfoService: GameInfoService) {
       call.respond(HttpStatusCode.NotFound)
     } else {
       call.respond(scoreInfo)
+    }
+  }
+}
+
+fun Route.nowPlayingInfoSse(
+    gameInfoService: GameInfoService,
+) {
+  sse {
+    val frequency = call.request.queryParameters["rate"]?.toLong() ?: 1000
+
+    try {
+      while (true) {
+        val scoreInfo = gameInfoService.getNowPlayingPointIntime()
+        send(Json.encodeToString(scoreInfo))
+        delay(
+            frequency,
+        )
+      }
+    } catch (e: Exception,) {
+      logger.warn { "SSE closed due to an error: ${e.message}" }
+    } finally {
+      logger.info { "Connection closed for /sse/game/nowplaying/stats" }
     }
   }
 }
