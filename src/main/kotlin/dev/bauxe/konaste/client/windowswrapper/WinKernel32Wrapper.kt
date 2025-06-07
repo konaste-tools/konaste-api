@@ -2,8 +2,10 @@ package dev.bauxe.konaste.client.windowswrapper
 
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
+import com.sun.jna.platform.win32.BaseTSD
 import com.sun.jna.platform.win32.Kernel32
 import com.sun.jna.platform.win32.WinNT.HANDLE
+import com.sun.jna.platform.win32.WinNT.MEMORY_BASIC_INFORMATION
 import com.sun.jna.platform.win32.WinNT.PROCESS_QUERY_INFORMATION
 import com.sun.jna.platform.win32.WinNT.PROCESS_VM_READ
 import com.sun.jna.ptr.IntByReference
@@ -68,5 +70,16 @@ class WinKernel32Wrapper(val kernel32: Kernel32) : Kernel32Wrapper {
 
   override fun getLastError(): Int {
     return kernel32.GetLastError()
+  }
+
+  override fun virtualQueryEx(procHandle: Pointer, addr: Pointer): MEMORY_BASIC_INFORMATION? {
+    val mbi = MEMORY_BASIC_INFORMATION()
+    val hdl = HANDLE()
+    hdl.pointer = procHandle
+
+    if (kernel32.VirtualQueryEx(hdl, addr, mbi, BaseTSD.SIZE_T(mbi.size().toLong())).toInt() == 0) {
+      return null
+    }
+    return mbi
   }
 }

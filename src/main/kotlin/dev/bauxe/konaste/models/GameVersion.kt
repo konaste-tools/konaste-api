@@ -27,6 +27,7 @@ data class Path(
 data class Pointer(
     val offset: Long,
     val size: PointerSize,
+    val pattern: String? = null,
 )
 
 @Serializable

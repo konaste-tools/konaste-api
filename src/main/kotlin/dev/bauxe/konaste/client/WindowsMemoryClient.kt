@@ -10,11 +10,11 @@ import dev.bauxe.konaste.service.composition.EventManager
 import dev.bauxe.konaste.service.polling.Poller
 import dev.bauxe.konaste.utils.ByteHelpers
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.koin.core.component.KoinComponent
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
 
 /**
  * [dev.bauxe.konaste.client.WindowsMemoryClient] is an interface between konaste-api Sound Voltex
@@ -70,11 +70,22 @@ class WindowsMemoryClient(
             PointerSize.BYTE_4 -> 4
             PointerSize.BYTE_8 -> 8
           }
+
+      val address =
+          when (step.pattern) {
+            null -> pointerPosition.share(step.offset)
+            else -> {
+              val patternAddress = scanForPattern(step.pattern.split(' '), pointerPosition)
+              if (patternAddress == -1L) {
+                logger.warn { "Could not match pattern ${step.pattern}" }
+                return PointerResult.NotFound
+              }
+              Pointer(patternAddress).share(step.offset)
+            }
+          }
       val data =
           read(
-              pointerPosition.share(
-                  step.offset,
-              ),
+              address,
               readsize,
           )
       val bytes =
@@ -102,6 +113,53 @@ class WindowsMemoryClient(
             path.finalOffset,
         ),
     )
+  }
+
+  private fun scanForPattern(
+      pattern: List<String>,
+      startingOffset: Pointer,
+      useLimit: Boolean = false
+  ): Long {
+    val procHandle = getStoredProcessHandle() ?: return -1
+    var limit = 20
+    var offset = startingOffset
+    var bytes = ByteArray(0)
+    while (!useLimit || limit-- > 0) {
+      val memoryInformation = kernel32Wrapper.virtualQueryEx(procHandle, offset) ?: return -1
+      if (bytes.isEmpty()) {
+        bytes = ByteArray(memoryInformation.regionSize.toInt() + pattern.size) { 0x0 }
+      }
+
+      when (val result =
+          kernel32Wrapper.readProcessMemory(
+              procHandle, memoryInformation.baseAddress, memoryInformation.regionSize.toInt())) {
+        is MemoryResult.Ok -> result.data.copyInto(bytes, pattern.size, 0, result.data.size)
+        is MemoryResult.KernelError -> return -1
+        MemoryResult.ProcessNotFound -> return -1
+        MemoryResult.ReadViolation -> return -1
+      }
+
+      var patternIndex = 0
+      var patternStartAddress = -1L
+
+      bytes.asIterable().forEachIndexed { index, byte ->
+        if (pattern[index] == "??" || byte == pattern[index].toByte(16)) patternIndex++
+        else patternIndex = 0
+
+        if (patternIndex == pattern.size) {
+          patternStartAddress =
+              Pointer.nativeValue(memoryInformation.baseAddress) + index - pattern.size
+          return@forEachIndexed
+        }
+      }
+      if (patternStartAddress != -1L) {
+        return patternStartAddress
+      }
+
+      offset = offset.share(memoryInformation.regionSize.toLong())
+      bytes.copyOfRange(bytes.size - pattern.size, bytes.size).copyInto(bytes, 0, 0, pattern.size)
+    }
+    return -1
   }
 
   override fun lastUpdatedAt(): Instant = lastUpdatedAt
